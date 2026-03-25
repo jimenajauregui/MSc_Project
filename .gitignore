@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+.venv/
+.DS_Store
+
+# Data (Crucial!)
+*.jsonl
+*.csv
+*.parquet
+data/
+
+# Security
+.env
