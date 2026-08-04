@@ -1,0 +1,123 @@
+{
+    "top_failures": [
+        {
+            "doc_id": "doc_3393",
+            "year": 2011,
+            "title": "N/A",
+            "true_labels": [
+                "CHILDREN",
+                "CRIMINAL LAW",
+                "ENVIRONMENT",
+                "HEALTH CARE",
+                "LOCAL GOVERNMENT",
+                "PLANNING & DEVELOPMENT",
+                "PUBLIC ORDER",
+                "SOCIAL SECURITY",
+                "TRANSPORTATION"
+            ],
+            "pred_labels": [
+                "PUBLIC ORDER"
+            ],
+            "error_count": 8
+        },
+        {
+            "doc_id": "doc_4644",
+            "year": 2012,
+            "title": "N/A",
+            "true_labels": [
+                "CHILDREN",
+                "HEALTH CARE",
+                "TAXATION",
+                "TRANSPORTATION"
+            ],
+            "pred_labels": [
+                "LOCAL GOVERNMENT"
+            ],
+            "error_count": 5
+        },
+        {
+            "doc_id": "doc_1261",
+            "year": 2009,
+            "title": "N/A",
+            "true_labels": [
+                "ENVIRONMENT",
+                "HEALTH CARE",
+                "PLANNING & DEVELOPMENT",
+                "PUBLIC ORDER",
+                "TRANSPORTATION"
+            ],
+            "pred_labels": [
+                "PLANNING & DEVELOPMENT"
+            ],
+            "error_count": 4
+        },
+        {
+            "doc_id": "doc_1482",
+            "year": 2009,
+            "title": "N/A",
+            "true_labels": [
+                "AGRICULTURE & FOOD",
+                "TAXATION",
+                "TRANSPORTATION"
+            ],
+            "pred_labels": [
+                "ENVIRONMENT"
+            ],
+            "error_count": 4
+        },
+        {
+            "doc_id": "doc_2402",
+            "year": 2010,
+            "title": "N/A",
+            "true_labels": [
+                "CRIMINAL LAW",
+                "EU",
+                "IMMIGRATION & CITIZENSHIP"
+            ],
+            "pred_labels": [
+                "FINANCE"
+            ],
+            "error_count": 4
+        }
+    ],
+    "class_fp_counts": {
+        "AGRICULTURE & FOOD": 60,
+        "CHILDREN": 156,
+        "CRIMINAL LAW": 37,
+        "EDUCATION": 53,
+        "ENVIRONMENT": 64,
+        "EU": 19,
+        "FINANCE": 78,
+        "HEALTH CARE": 94,
+        "HOUSING": 78,
+        "IMMIGRATION & CITIZENSHIP": 93,
+        "LOCAL GOVERNMENT": 359,
+        "PLANNING & DEVELOPMENT": 56,
+        "POLITICS": 19,
+        "PUBLIC ORDER": 75,
+        "SOCIAL SECURITY": 123,
+        "TAXATION": 155,
+        "TELECOMMUNICATIONS": 0,
+        "TRANSPORTATION": 112
+    },
+    "class_fn_counts": {
+        "AGRICULTURE & FOOD": 54,
+        "CHILDREN": 163,
+        "CRIMINAL LAW": 189,
+        "EDUCATION": 79,
+        "ENVIRONMENT": 96,
+        "EU": 248,
+        "FINANCE": 63,
+        "HEALTH CARE": 171,
+        "HOUSING": 59,
+        "IMMIGRATION & CITIZENSHIP": 49,
+        "LOCAL GOVERNMENT": 225,
+        "PLANNING & DEVELOPMENT": 94,
+        "POLITICS": 17,
+        "PUBLIC ORDER": 242,
+        "SOCIAL SECURITY": 159,
+        "TAXATION": 199,
+        "TELECOMMUNICATIONS": 79,
+        "TRANSPORTATION": 71
+    }
+}

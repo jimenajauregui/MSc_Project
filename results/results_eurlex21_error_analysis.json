@@ -1,0 +1,152 @@
+{
+    "top_failures": [
+        {
+            "doc_id": "doc_2540",
+            "year": 2014,
+            "title": "N/A",
+            "true_labels": [
+                "EuroVoc Class 0",
+                "EuroVoc Class 12",
+                "EuroVoc Class 15",
+                "EuroVoc Class 16",
+                "EuroVoc Class 18",
+                "EuroVoc Class 19"
+            ],
+            "pred_labels": [
+                "EuroVoc Class 2",
+                "EuroVoc Class 5",
+                "EuroVoc Class 10",
+                "EuroVoc Class 11",
+                "EuroVoc Class 15",
+                "EuroVoc Class 18"
+            ],
+            "error_count": 8
+        },
+        {
+            "doc_id": "doc_1414",
+            "year": 2014,
+            "title": "N/A",
+            "true_labels": [
+                "EuroVoc Class 0",
+                "EuroVoc Class 7",
+                "EuroVoc Class 9",
+                "EuroVoc Class 10",
+                "EuroVoc Class 13",
+                "EuroVoc Class 14",
+                "EuroVoc Class 16",
+                "EuroVoc Class 20"
+            ],
+            "pred_labels": [
+                "EuroVoc Class 14"
+            ],
+            "error_count": 7
+        },
+        {
+            "doc_id": "doc_1800",
+            "year": 2015,
+            "title": "N/A",
+            "true_labels": [
+                "EuroVoc Class 2",
+                "EuroVoc Class 8",
+                "EuroVoc Class 10",
+                "EuroVoc Class 12",
+                "EuroVoc Class 19"
+            ],
+            "pred_labels": [
+                "EuroVoc Class 2",
+                "EuroVoc Class 3",
+                "EuroVoc Class 10",
+                "EuroVoc Class 11",
+                "EuroVoc Class 15",
+                "EuroVoc Class 18"
+            ],
+            "error_count": 7
+        },
+        {
+            "doc_id": "doc_2905",
+            "year": 2014,
+            "title": "N/A",
+            "true_labels": [
+                "EuroVoc Class 0",
+                "EuroVoc Class 3",
+                "EuroVoc Class 5",
+                "EuroVoc Class 7",
+                "EuroVoc Class 9",
+                "EuroVoc Class 11"
+            ],
+            "pred_labels": [
+                "EuroVoc Class 0",
+                "EuroVoc Class 12",
+                "EuroVoc Class 15"
+            ],
+            "error_count": 7
+        },
+        {
+            "doc_id": "doc_4276",
+            "year": 2014,
+            "title": "N/A",
+            "true_labels": [
+                "EuroVoc Class 0",
+                "EuroVoc Class 4",
+                "EuroVoc Class 5",
+                "EuroVoc Class 12",
+                "EuroVoc Class 15",
+                "EuroVoc Class 18",
+                "EuroVoc Class 19"
+            ],
+            "pred_labels": [
+                "EuroVoc Class 10",
+                "EuroVoc Class 11",
+                "EuroVoc Class 15",
+                "EuroVoc Class 18"
+            ],
+            "error_count": 7
+        }
+    ],
+    "class_fp_counts": {
+        "EuroVoc Class 0": 335,
+        "EuroVoc Class 1": 152,
+        "EuroVoc Class 2": 90,
+        "EuroVoc Class 3": 169,
+        "EuroVoc Class 4": 133,
+        "EuroVoc Class 5": 122,
+        "EuroVoc Class 6": 341,
+        "EuroVoc Class 7": 94,
+        "EuroVoc Class 8": 31,
+        "EuroVoc Class 9": 141,
+        "EuroVoc Class 10": 149,
+        "EuroVoc Class 11": 98,
+        "EuroVoc Class 12": 120,
+        "EuroVoc Class 13": 5,
+        "EuroVoc Class 14": 7,
+        "EuroVoc Class 15": 222,
+        "EuroVoc Class 16": 14,
+        "EuroVoc Class 17": 70,
+        "EuroVoc Class 18": 146,
+        "EuroVoc Class 19": 111,
+        "EuroVoc Class 20": 142
+    },
+    "class_fn_counts": {
+        "EuroVoc Class 0": 280,
+        "EuroVoc Class 1": 164,
+        "EuroVoc Class 2": 158,
+        "EuroVoc Class 3": 880,
+        "EuroVoc Class 4": 102,
+        "EuroVoc Class 5": 277,
+        "EuroVoc Class 6": 201,
+        "EuroVoc Class 7": 288,
+        "EuroVoc Class 8": 123,
+        "EuroVoc Class 9": 77,
+        "EuroVoc Class 10": 185,
+        "EuroVoc Class 11": 309,
+        "EuroVoc Class 12": 173,
+        "EuroVoc Class 13": 89,
+        "EuroVoc Class 14": 79,
+        "EuroVoc Class 15": 253,
+        "EuroVoc Class 16": 52,
+        "EuroVoc Class 17": 105,
+        "EuroVoc Class 18": 171,
+        "EuroVoc Class 19": 163,
+        "EuroVoc Class 20": 281
+    }
+}
