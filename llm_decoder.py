@@ -120,6 +120,7 @@ def evaluate_llama3_zero_shot(
     checkpoint_dir: str = "results",
     save_every: int = 100,
     batch_size: int = 16,
+    max_new_tokens: int = 50,
     llama_model = None,
     tokenizer = None
 ):
@@ -170,7 +171,7 @@ def evaluate_llama3_zero_shot(
                 tokenizer.pad_token = tokenizer.eos_token
                 tokenizer.pad_token_id = tokenizer.eos_token_id
             
-            print(f" Running batched PyTorch CUDA inference (batch_size={batch_size})...")
+            print(f" Running batched PyTorch CUDA inference (batch_size={batch_size}, max_new_tokens={max_new_tokens})...")
             pbar = tqdm(total=len(prompts), initial=start_idx, desc=f"Llama-3 GPU ({dataset_name})")
             
             for b_start in range(start_idx, len(prompts), batch_size):
@@ -188,7 +189,7 @@ def evaluate_llama3_zero_shot(
                 with torch.no_grad():
                     outputs = llama_model.generate(
                         **inputs,
-                        max_new_tokens=150,
+                        max_new_tokens=max_new_tokens,
                         do_sample=False,
                         pad_token_id=tokenizer.pad_token_id
                     )
