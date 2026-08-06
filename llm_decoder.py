@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import json
 import torch
 import requests
@@ -97,6 +98,199 @@ JSON Output:"""
         for m in messages[1:]:
             prompt_parts.append(f"{m['role'].upper()}: {m['content']}")
         return "\n\n".join(prompt_parts)
+
+
+def parse_llm_json_output(llm_output_text: str, candidate_labels: List[str]) -> np.ndarray:
+    """
+    Parses LLM output text, extracts JSON label arrays, and converts to a multi-hot binary vector.
+    """
+    num_classes = len(candidate_labels)
+    multi_hot = np.zeros(num_classes, dtype=np.float32)
+    label_to_idx = {label.upper().strip(): idx for idx, label in enumerate(candidate_labels)}
+
+    # Attempt to extract JSON array using regex
+    json_match = re.search(r'\[.*?\]', llm_output_text, re.DOTALL)
+    predicted_labels = []
+
+    if json_match:
+        try:
+            parsed = json.loads(json_match.group(0))
+            if isinstance(parsed, list):
+                predicted_labels = [str(item).upper().strip() for item in parsed]
+        except Exception:
+            pass
+
+    # Fallback substring matching if JSON parsing failed
+    if not predicted_labels:
+        for label_name in candidate_labels:
+            if label_name.upper() in llm_output_text.upper():
+                predicted_labels.append(label_name.upper())
+
+    # Map matched label strings to binary vector
+    for label_str in predicted_labels:
+        if label_str in label_to_idx:
+            idx = label_to_idx[label_str]
+            multi_hot[idx] = 1.0
+
+    return multi_hot
+
+
+def evaluate_llama3_zero_shot(
+    prompts: List[str], 
+    dataset_split, 
+    candidate_labels: List[str], 
+    head_indices: list, 
+    tail_indices: list, 
+    dataset_name: str = "UK-LEX-18", 
+    max_samples: Optional[int] = None,
+    checkpoint_dir: str = "results",
+    save_every: int = 100,
+    batch_size: int = 16,
+    max_new_tokens: int = 50,
+    llama_model = None,
+    tokenizer = None
+):
+    """
+    Executes Llama-3 zero-shot inference with partial checkpoints and auto-resume.
+    Supports batched GPU execution on CUDA (Colab Pro) for ultra-fast generation,
+    with local sequential Ollama fallback.
+    """
+    os.makedirs(checkpoint_dir, exist_ok=True)
+    clean_name = dataset_name.lower().replace("-", "")
+    ckpt_path = os.path.join(checkpoint_dir, f"llama3_preds_{clean_name}_ckpt.npy")
+
+    if max_samples is not None:
+        prompts = prompts[:max_samples]
+        if hasattr(dataset_split, 'select'):
+            dataset_split = dataset_split.select(range(min(max_samples, len(dataset_split))))
+        elif isinstance(dataset_split, dict):
+            dataset_split = {k: v[:max_samples] for k, v in dataset_split.items()}
+
+    # Check for existing checkpoint
+    all_pred_vectors = []
+    start_idx = 0
+    if os.path.exists(ckpt_path):
+        try:
+            saved_preds = np.load(ckpt_path)
+            all_pred_vectors = list(saved_preds)
+            start_idx = len(all_pred_vectors)
+            print(f" Resuming {dataset_name} evaluation from checkpoint at doc {start_idx:,}/{len(prompts):,}...")
+        except Exception as e:
+            print(f"Warning: Could not load checkpoint from {ckpt_path} ({e}). Starting fresh.")
+            all_pred_vectors = []
+            start_idx = 0
+
+    if start_idx < len(prompts):
+        if start_idx == 0:
+            print(f"\n Starting Llama-3 Zero-Shot on {dataset_name} Test Set ({len(prompts):,} documents)...")
+        
+        # Check notebook main scope and global scope for PyTorch CUDA model if not explicitly passed
+        if llama_model is None:
+            if 'llama_model' in globals():
+                llama_model = globals()['llama_model']
+            elif '__main__' in sys.modules and hasattr(sys.modules['__main__'], 'llama_model'):
+                llama_model = getattr(sys.modules['__main__'], 'llama_model')
+
+        if tokenizer is None:
+            if 'tokenizer' in globals():
+                tokenizer = globals()['tokenizer']
+            elif '__main__' in sys.modules and hasattr(sys.modules['__main__'], 'tokenizer'):
+                tokenizer = getattr(sys.modules['__main__'], 'tokenizer')
+
+        # Batched PyTorch GPU Inference (Colab Pro / Cloud GPU)
+        if llama_model is not None and tokenizer is not None:
+            tokenizer.padding_side = "left"
+            if tokenizer.pad_token_id is None:
+                tokenizer.pad_token = tokenizer.eos_token
+                tokenizer.pad_token_id = tokenizer.eos_token_id
+            
+            print(f" Running batched PyTorch CUDA inference (batch_size={batch_size}, max_new_tokens={max_new_tokens})...")
+            pbar = tqdm(total=len(prompts), initial=start_idx, desc=f"Llama-3 GPU ({dataset_name})")
+            
+            for b_start in range(start_idx, len(prompts), batch_size):
+                b_end = min(b_start + batch_size, len(prompts))
+                batch_prompts = prompts[b_start:b_end]
+                
+                inputs = tokenizer(
+                    batch_prompts, 
+                    return_tensors="pt", 
+                    padding=True, 
+                    truncation=True, 
+                    max_length=2048
+                ).to("cuda")
+                
+                with torch.no_grad():
+                    outputs = llama_model.generate(
+                        **inputs,
+                        max_new_tokens=max_new_tokens,
+                        do_sample=False,
+                        pad_token_id=tokenizer.pad_token_id
+                    )
+                
+                input_len = inputs.input_ids.shape[1]
+                for seq in outputs:
+                    gen_tokens = seq[input_len:]
+                    gen_text = tokenizer.decode(gen_tokens, skip_special_tokens=True)
+                    pred_vector = parse_llm_json_output(gen_text, candidate_labels)
+                    all_pred_vectors.append(pred_vector)
+                
+                # Clear CUDA cache to prevent memory fragmentation
+                del inputs, outputs
+                torch.cuda.empty_cache()
+                
+                pbar.update(b_end - b_start)
+                
+                # Save partial checkpoint
+                if len(all_pred_vectors) % save_every < batch_size or b_end == len(prompts):
+                    np.save(ckpt_path, np.array(all_pred_vectors, dtype=np.float32))
+            pbar.close()
+
+        else:
+            # Check if running in GPU environment
+            if torch.cuda.is_available() or 'google.colab' in sys.modules:
+                raise ValueError(
+                    "'llama_model' or 'tokenizer' is None!\n"
+                    "Please make sure you have run Cell 34 ('4.2. Llama-3-8B 4-Bit Model Initialization') first "
+                    "to load the Llama-3 model into GPU memory, and pass llama_model=llama_model, tokenizer=tokenizer."
+                )
+            
+            # Sequential Ollama Fallback for local CPU testing
+            print(f" Running local sequential Ollama inference...")
+            for i in tqdm(range(start_idx, len(prompts)), desc=f"Llama-3 Ollama ({dataset_name})", initial=start_idx, total=len(prompts)):
+                prompt = prompts[i]
+                res = requests.post(
+                    "http://localhost:11434/api/generate",
+                    json={"model": "llama3:8b", "prompt": prompt, "stream": False}
+                )
+                generated_text = res.json().get("response", "") if res.status_code == 200 else ""
+                pred_vector = parse_llm_json_output(generated_text, candidate_labels)
+                all_pred_vectors.append(pred_vector)
+                
+                if (i + 1) % save_every == 0 or (i + 1) == len(prompts):
+                    np.save(ckpt_path, np.array(all_pred_vectors, dtype=np.float32))
+
+    y_pred = np.array(all_pred_vectors, dtype=np.float32)
+    y_true = dataset_split['labels']
+    if isinstance(y_true, torch.Tensor):
+        y_true = y_true.numpy()
+    else:
+        y_true = np.array(y_true, dtype=np.float32)
+        
+    # Calculate Temporal Metrics (y_true first, y_pred second)
+    metrics = compute_temporal_f1_metrics(y_true, y_pred, head_indices, tail_indices)
+    
+    print("\n" + "="*60)
+    print(f"{dataset_name} ZERO-SHOT LLAMA-3 TEST RESULTS")
+    print("="*60)
+    print(f"  • Micro-F1       : {metrics.get('micro_f1', metrics.get('Micro-F1', 0.0)):.4f}")
+    print(f"  • Macro-F1       : {metrics.get('macro_f1', metrics.get('Macro-F1', 0.0)):.4f}")
+    print(f"  • Head-Micro-F1  : {metrics.get('head_micro_f1', metrics.get('Head-Micro-F1', 0.0)):.4f}")
+    print(f"  • Head-Macro-F1  : {metrics.get('Head-Macro-F1', metrics.get('head_macro_f1', 0.0)):.4f}")
+    print(f"  • Tail-Micro-F1  : {metrics.get('tail_micro_f1', metrics.get('Tail-Micro-F1', 0.0)):.4f}")
+    print(f"  • Tail-Macro-F1  : {metrics.get('tail_macro_f1', metrics.get('Tail-Macro-F1', 0.0)):.4f}")
+    print("="*60)
+    
+    return metrics, y_pred
 
 
 def evaluate_llama3_few_shot(
@@ -260,5 +454,3 @@ class LlamaZeroShotEvaluator:
             prompt = self.prompt_builder.build_zero_shot_prompt(text, title)
             prompts.append(prompt)
         return prompts
-
-
