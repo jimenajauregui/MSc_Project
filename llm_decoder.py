@@ -158,11 +158,18 @@ def evaluate_llama3_zero_shot(
         if start_idx == 0:
             print(f"\n Starting Llama-3 Zero-Shot on {dataset_name} Test Set ({len(prompts):,} documents)...")
         
-        # Check global scope for PyTorch CUDA model if not explicitly passed
-        if llama_model is None and 'llama_model' in globals():
-            llama_model = globals()['llama_model']
-        if tokenizer is None and 'tokenizer' in globals():
-            tokenizer = globals()['tokenizer']
+        # Check notebook main scope and global scope for PyTorch CUDA model if not explicitly passed
+        if llama_model is None:
+            if 'llama_model' in globals():
+                llama_model = globals()['llama_model']
+            elif '__main__' in sys.modules and hasattr(sys.modules['__main__'], 'llama_model'):
+                llama_model = getattr(sys.modules['__main__'], 'llama_model')
+
+        if tokenizer is None:
+            if 'tokenizer' in globals():
+                tokenizer = globals()['tokenizer']
+            elif '__main__' in sys.modules and hasattr(sys.modules['__main__'], 'tokenizer'):
+                tokenizer = getattr(sys.modules['__main__'], 'tokenizer')
 
         # Batched PyTorch GPU Inference (Colab Pro / Cloud GPU)
         if llama_model is not None and tokenizer is not None:
@@ -201,6 +208,10 @@ def evaluate_llama3_zero_shot(
                     pred_vector = parse_llm_json_output(gen_text, candidate_labels)
                     all_pred_vectors.append(pred_vector)
                 
+                # Clear CUDA cache to prevent memory fragmentation
+                del inputs, outputs
+                torch.cuda.empty_cache()
+                
                 pbar.update(b_end - b_start)
                 
                 # Save partial checkpoint
@@ -209,6 +220,14 @@ def evaluate_llama3_zero_shot(
             pbar.close()
 
         else:
+            # Check if running in GPU environment
+            if torch.cuda.is_available() or 'google.colab' in sys.modules:
+                raise ValueError(
+                    "❌ 'llama_model' or 'tokenizer' is None!\n"
+                    "Please make sure you have run Cell 34 ('4.2. Llama-3-8B 4-Bit Model Initialization') first "
+                    "to load the Llama-3 model into GPU memory, and pass llama_model=llama_model, tokenizer=tokenizer."
+                )
+            
             # Sequential Ollama Fallback for local CPU testing
             print(f" Running local sequential Ollama inference...")
             for i in tqdm(range(start_idx, len(prompts)), desc=f"Llama-3 Ollama ({dataset_name})", initial=start_idx, total=len(prompts)):
