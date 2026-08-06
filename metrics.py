@@ -119,3 +119,43 @@ def evaluate_by_year(
         print(f"  Evaluated Year {int(yr)}: {len(indices)} documents")
         
     return year_results
+
+
+def evaluate_predictions_by_year(
+    y_pred: np.ndarray, 
+    dataset, 
+    head_indices: list, 
+    tail_indices: list
+) -> dict:
+    """
+    Year-by-year evaluation engine for pre-computed prediction matrices (e.g., Llama-3 LLM zero-shot predictions).
+    Calculates Micro/Macro F1 and Head/Tail splits for each chronological test year.
+    """
+    num_samples = min(len(y_pred), len(dataset))
+    y_pred = y_pred[:num_samples]
+    
+    years_arr = np.array([int(y) for y in dataset['year']])[:num_samples]
+    unique_years = sorted(list(set(years_arr)))
+    year_results = {}
+    
+    y_true_all = dataset['labels']
+    if isinstance(y_true_all, torch.Tensor):
+        y_true_all = y_true_all.numpy()
+    else:
+        y_true_all = np.array(y_true_all, dtype=np.float32)
+    y_true_all = y_true_all[:num_samples]
+
+    for yr in unique_years:
+        indices = np.where(years_arr == yr)[0]
+        if len(indices) == 0:
+            continue
+        y_sub_true = y_true_all[indices]
+        y_sub_pred = y_pred[indices]
+
+        metrics = compute_temporal_f1_metrics(y_sub_true, y_sub_pred, head_indices, tail_indices)
+        year_results[int(yr)] = metrics
+        print(f"  Llama-3 Year {int(yr)} ({len(indices)} docs): Micro-F1 = {metrics['Micro-F1']:.4f}, Macro-F1 = {metrics['Macro-F1']:.4f}")
+
+    return year_results
+
+
