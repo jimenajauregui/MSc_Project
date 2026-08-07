@@ -10,6 +10,48 @@ from tqdm.auto import tqdm
 from metrics import compute_temporal_f1_metrics
 
 
+def extract_sample_meta(sample, max_chars: int = 3500):
+    """
+    Extracts document body text, title, and labels reliably across
+    HuggingFace Datasets (with or without torch format), Dicts, and Pandas Series.
+    """
+    text = ""
+    title = ""
+    labels = None
+
+    if hasattr(sample, "get"):
+        text = sample.get("body", sample.get("text", sample.get("document_text", "")))
+        title = sample.get("title", sample.get("celex_id", ""))
+        labels = sample.get("labels", None)
+
+    if not text and hasattr(sample, "__getitem__"):
+        for k in ["body", "text", "document_text", "content"]:
+            try:
+                v = sample[k]
+                if isinstance(v, str) and len(v.strip()) > 0:
+                    text = v
+                    break
+            except Exception:
+                pass
+
+        for k in ["title", "celex_id"]:
+            try:
+                v = sample[k]
+                if isinstance(v, str) and len(v.strip()) > 0:
+                    title = v
+                    break
+            except Exception:
+                pass
+
+        if labels is None:
+            try:
+                labels = sample["labels"]
+            except Exception:
+                pass
+
+    return str(title) if title else "", str(text)[:max_chars] if text else "", labels
+
+
 class LlamaPromptBuilder:
     """
     Prompt engineering template engine for zero-shot and few-shot multi-label
@@ -20,7 +62,7 @@ class LlamaPromptBuilder:
         self.domain_name = domain_name
         self.label_to_idx = {label: idx for idx, label in enumerate(self.candidate_labels)}
 
-    def build_zero_shot_prompt(self, document_text: str, document_title: str = "") -> str:
+    def build_zero_shot_prompt(self, document_text: str, document_title: str = "", text_length: int = 3500) -> str:
         """
         Constructs a zero-shot instruction prompt forcing strict JSON array output.
         """
@@ -36,7 +78,7 @@ Candidate Legal Categories:
 Document Title: {document_title if document_title else 'N/A'}
 Document Text:
 \"\"\"
-{document_text[:1500]}
+{document_text[:text_length]}
 \"\"\"
 
 Instructions:
@@ -66,13 +108,10 @@ JSON Output:"""
 
         # Add Few-Shot Exemplars as user/assistant conversational turns
         for ex in exemplar_docs:
-            ex_title = ex.get('title', 'N/A')
-            ex_text = ex.get('text', ex.get('body', ''))
-            if not ex_text and 'input_ids' in ex and tokenizer is not None and hasattr(tokenizer, 'decode'):
-                ex_text = tokenizer.decode(ex['input_ids'], skip_special_tokens=True)
-            ex_text = ex_text[:800]
+            ex_title, ex_text, ex_labels = extract_sample_meta(ex, max_chars=800)
+            if not ex_title:
+                ex_title = "N/A"
             
-            ex_labels = ex.get('labels', [])
             if isinstance(ex_labels, torch.Tensor):
                 ex_labels = ex_labels.cpu().numpy()
                 
@@ -258,7 +297,7 @@ def evaluate_llama3_zero_shot(
             if torch.cuda.is_available() or 'google.colab' in sys.modules:
                 raise ValueError(
                     "'llama_model' or 'tokenizer' is None!\n"
-                    "Please make sure you have run Cell 34 ('4.2. Llama-3-8B 4-Bit Model Initialization') first "
+                    "Please make sure you have run the Llama-3 Model Initialization cell first "
                     "to load the Llama-3 model into GPU memory, and pass llama_model=llama_model, tokenizer=tokenizer."
                 )
             
@@ -280,7 +319,7 @@ def evaluate_llama3_zero_shot(
     y_pred = np.array(all_pred_vectors, dtype=np.float32)
     y_true = dataset_split['labels']
     if isinstance(y_true, torch.Tensor):
-        y_true = y_true.numpy()
+        y_true = y_true.cpu().numpy()
     else:
         y_true = np.array(y_true, dtype=np.float32)
         
@@ -326,26 +365,37 @@ def evaluate_llama3_few_shot(
     ckpt_path = os.path.join(checkpoint_dir, f"llama3_preds_fewshot_{clean_name}_ckpt.npy")
 
     prompt_builder = LlamaPromptBuilder(candidate_labels=candidate_labels, domain_name=dataset_name)
-    
-    # Sample n_shots diverse exemplars from historical train_dataset
-    exemplar_docs = []
-    if train_dataset is not None and len(train_dataset) > 0:
-        step = max(1, len(train_dataset) // n_shots)
-        for i in range(0, len(train_dataset), step):
-            if len(exemplar_docs) < n_shots:
-                exemplar_docs.append(train_dataset[i])
 
-    print(f"\n Building Few-Shot Prompts ({n_shots}-shot) with chat templates for {dataset_name}...")
+    # Ensure unformatted access if test_dataset or train_dataset are HF datasets
+    test_ds = test_dataset.with_format(None) if hasattr(test_dataset, 'with_format') else test_dataset
+    train_ds = train_dataset.with_format(None) if hasattr(train_dataset, 'with_format') else train_dataset
+
+    # Sample n_shots diverse exemplars from historical train_dataset with non-empty text and valid labels
+    exemplar_docs = []
+    if train_ds is not None and len(train_ds) > 0:
+        step = max(1, len(train_ds) // (n_shots * 4))
+        for i in range(0, len(train_ds), step):
+            ex_sample = train_ds[i]
+            ex_title, ex_text, ex_lbls = extract_sample_meta(ex_sample, max_chars=800)
+            if ex_text.strip():
+                exemplar_docs.append({
+                    'title': ex_title,
+                    'text': ex_text,
+                    'labels': ex_lbls
+                })
+            if len(exemplar_docs) >= n_shots:
+                break
+        if len(exemplar_docs) == 0:
+            exemplar_docs = [train_ds[i] for i in range(min(n_shots, len(train_ds)))]
+
+    print(f"\n Building Few-Shot Prompts ({len(exemplar_docs)}-shot) with chat templates for {dataset_name}...")
     prompts = []
-    for sample in tqdm(test_dataset, desc="Generating Few-Shot Prompts"):
-        text = sample.get('body', sample.get('text', ''))
-        if not text and 'input_ids' in sample and tokenizer is not None and hasattr(tokenizer, 'decode'):
-            text = tokenizer.decode(sample['input_ids'], skip_special_tokens=True)
-        title = sample.get('title', '')
+    for sample in tqdm(test_ds, desc=f"Generating Few-Shot Prompts ({dataset_name})"):
+        doc_title, doc_text, _ = extract_sample_meta(sample, max_chars=3500)
         prompt = prompt_builder.build_few_shot_prompt(
-            document_text=text,
+            document_text=doc_text,
             exemplar_docs=exemplar_docs,
-            document_title=title,
+            document_title=doc_title,
             tokenizer=tokenizer,
             text_length=3500
         )
@@ -372,10 +422,17 @@ def evaluate_llama3_few_shot(
 
     if start_idx < len(prompts):
         # Check model and tokenizer
-        if llama_model is None and 'llama_model' in globals():
-            llama_model = globals()['llama_model']
-        if tokenizer is None and 'tokenizer' in globals():
-            tokenizer = globals()['tokenizer']
+        if llama_model is None:
+            if 'llama_model' in globals():
+                llama_model = globals()['llama_model']
+            elif '__main__' in sys.modules and hasattr(sys.modules['__main__'], 'llama_model'):
+                llama_model = getattr(sys.modules['__main__'], 'llama_model')
+
+        if tokenizer is None:
+            if 'tokenizer' in globals():
+                tokenizer = globals()['tokenizer']
+            elif '__main__' in sys.modules and hasattr(sys.modules['__main__'], 'tokenizer'):
+                tokenizer = getattr(sys.modules['__main__'], 'tokenizer')
 
         if llama_model is not None and tokenizer is not None:
             tokenizer.padding_side = "left"
@@ -421,10 +478,33 @@ def evaluate_llama3_few_shot(
                     np.save(ckpt_path, np.array(all_pred_vectors, dtype=np.float32))
             pbar.close()
 
+        else:
+            if torch.cuda.is_available() or 'google.colab' in sys.modules:
+                raise ValueError(
+                    "'llama_model' or 'tokenizer' is None!\n"
+                    "Please make sure you have run the Llama-3 Model Initialization cell first "
+                    "to load the Llama-3 model into GPU memory, and pass llama_model=llama_model, tokenizer=tokenizer."
+                )
+
+            # Sequential Ollama Fallback for local CPU testing
+            print(f" Running local sequential Ollama Few-Shot inference...")
+            for i in tqdm(range(start_idx, len(prompts)), desc=f"Llama-3 Ollama Few-Shot ({dataset_name})", initial=start_idx, total=len(prompts)):
+                prompt = prompts[i]
+                res = requests.post(
+                    "http://localhost:11434/api/generate",
+                    json={"model": "llama3:8b", "prompt": prompt, "stream": False}
+                )
+                generated_text = res.json().get("response", "") if res.status_code == 200 else ""
+                pred_vector = parse_llm_json_output(generated_text, candidate_labels)
+                all_pred_vectors.append(pred_vector)
+
+                if (i + 1) % save_every == 0 or (i + 1) == len(prompts):
+                    np.save(ckpt_path, np.array(all_pred_vectors, dtype=np.float32))
+
     y_pred = np.array(all_pred_vectors, dtype=np.float32)
     y_true = test_dataset['labels']
     if isinstance(y_true, torch.Tensor):
-        y_true = y_true.numpy()
+        y_true = y_true.cpu().numpy()
     else:
         y_true = np.array(y_true, dtype=np.float32)
     y_true = y_true[:len(y_pred)]
@@ -434,14 +514,11 @@ def evaluate_llama3_few_shot(
     print("\n" + "="*60)
     print(f"{dataset_name} FEW-SHOT LLAMA-3 TEST RESULTS")
     print("="*60)
-    print(f"  • Micro-F1       : {metrics.get('micro_f1', 0.0):.4f}")
-    print(f"  • Macro-F1       : {metrics.get('macro_f1', 0.0):.4f}")
-    print(f"  • Head-Micro-F1  : {metrics.get('head_micro_f1', 0.0):.4f}")
-    print(f"  • Head-Macro-F1  : {metrics.get('head_macro_f1', 0.0):.4f}")
-    print(f"  • Tail-Micro-F1  : {metrics.get('tail_micro_f1', 0.0):.4f}")
-    print(f"  • Tail-Macro-F1  : {metrics.get('tail_macro_f1', 0.0):.4f}")
-    print("="*60)
-
+    print(f"  • Micro-F1       : {metrics.get('micro_f1', metrics.get('Micro-F1', 0.0)):.4f}")
+    print(f"  • Macro-F1       : {metrics.get('macro_f1', metrics.get('Macro-F1', 0.0)):.4f}")
+    print(f"  • Head-Micro-F1  : {metrics.get('head_micro_f1', metrics.get('Head-Micro-F1', 0.0)):.4f}")
+    print(f"  • Head-Macro-F1  : {metrics.get('Head-Macro-F1', metrics.get('head_macro_f1', 0.0)):.4f}")
+    print(f"  • Tail-Micro-F1  : {metrics.get('tail_micro_f1', metrics.get('Tail-Micro-F1', 0.0)):.4f}")
     return metrics, y_pred
 
 
