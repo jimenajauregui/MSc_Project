@@ -69,13 +69,18 @@ JSON Output:"""
             ex_title = ex.get('title', 'N/A')
             ex_text = ex.get('text', ex.get('body', ''))[:800]
             ex_labels = ex.get('labels', [])
+            
+            if isinstance(ex_labels, torch.Tensor):
+                ex_labels = ex_labels.cpu().numpy()
+                
+            ex_label_strs = []
             if isinstance(ex_labels, (np.ndarray, list)) and len(ex_labels) > 0:
-                if isinstance(ex_labels[0], (int, np.integer, float, np.floating)):
-                    ex_label_strs = [self.candidate_labels[i] for i, val in enumerate(ex_labels) if val == 1 and i < len(self.candidate_labels)]
+                if len(ex_labels) == len(self.candidate_labels):
+                    ex_label_strs = [self.candidate_labels[i] for i, val in enumerate(ex_labels) if float(val) > 0.5 and i < len(self.candidate_labels)]
+                elif isinstance(ex_labels[0], (str, bytes)):
+                    ex_label_strs = [str(lbl).strip() for lbl in ex_labels]
                 else:
-                    ex_label_strs = [str(lbl) for lbl in ex_labels]
-            else:
-                ex_label_strs = []
+                    ex_label_strs = [self.candidate_labels[int(i)] for i in ex_labels if int(i) < len(self.candidate_labels)]
 
             user_text = f"Document Title: {ex_title}\nDocument Text:\n\"\"\"\n{ex_text}\n\"\"\""
             assistant_text = json.dumps(ex_label_strs)
