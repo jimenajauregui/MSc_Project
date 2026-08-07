@@ -67,9 +67,12 @@ JSON Output:"""
         # Add Few-Shot Exemplars as user/assistant conversational turns
         for ex in exemplar_docs:
             ex_title = ex.get('title', 'N/A')
-            ex_text = ex.get('text', ex.get('body', ''))[:800]
-            ex_labels = ex.get('labels', [])
+            ex_text = ex.get('text', ex.get('body', ''))
+            if not ex_text and 'input_ids' in ex and tokenizer is not None and hasattr(tokenizer, 'decode'):
+                ex_text = tokenizer.decode(ex['input_ids'], skip_special_tokens=True)
+            ex_text = ex_text[:800]
             
+            ex_labels = ex.get('labels', [])
             if isinstance(ex_labels, torch.Tensor):
                 ex_labels = ex_labels.cpu().numpy()
                 
@@ -336,6 +339,8 @@ def evaluate_llama3_few_shot(
     prompts = []
     for sample in tqdm(test_dataset, desc="Generating Few-Shot Prompts"):
         text = sample.get('body', sample.get('text', ''))
+        if not text and 'input_ids' in sample and tokenizer is not None and hasattr(tokenizer, 'decode'):
+            text = tokenizer.decode(sample['input_ids'], skip_special_tokens=True)
         title = sample.get('title', '')
         prompt = prompt_builder.build_few_shot_prompt(
             document_text=text,
