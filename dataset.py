@@ -97,7 +97,7 @@ def load_uklex18_dataset(
         process_uk_batch,
         batched=True,
         batch_size=1000,
-        remove_columns=['body', 'title', 'id', 'data_type']
+        remove_columns=['id', 'data_type']
     )
 
     cols_to_format = ['input_ids', 'attention_mask', 'labels']
@@ -152,7 +152,7 @@ def load_eurlex21_dataset(
         encoded["year"] = [int(c[1:5]) if len(c) >= 5 and c[1:5].isdigit() else 2012 for c in batch["celex_id"]]
         return encoded
 
-    cols_to_remove = [col for col in eurlex_ds["train"].column_names if col not in ["input_ids", "attention_mask", "labels", "year", "celex_id"]]
+    cols_to_remove = [col for col in eurlex_ds["train"].column_names if col not in ["input_ids", "attention_mask", "labels", "year", "celex_id", "text", "title"]]
 
     encoded_ds = eurlex_ds.map(
         preprocess_eurlex_batch,
