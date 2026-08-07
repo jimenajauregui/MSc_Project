@@ -365,7 +365,7 @@ def evaluate_llama3_few_shot(
     max_samples: Optional[int] = None,
     checkpoint_dir: str = "results",
     save_every: int = 50,
-    batch_size: int = 16,
+    batch_size: int = 4,
     max_new_tokens: int = 100,
     llama_model = None,
     tokenizer = None
@@ -377,6 +377,12 @@ def evaluate_llama3_few_shot(
     os.makedirs(checkpoint_dir, exist_ok=True)
     clean_name = dataset_name.lower().replace("-", "")
     ckpt_path = os.path.join(checkpoint_dir, f"llama3_preds_fewshot_{clean_name}_ckpt.npy")
+
+    # Clear any residual CUDA allocations before inference
+    if torch.cuda.is_available():
+        import gc
+        gc.collect()
+        torch.cuda.empty_cache()
 
     # 1. Resolve Llama Tokenizer (Guard against accidental Legal-BERT tokenizer override)
     from transformers import AutoTokenizer
@@ -402,6 +408,18 @@ def evaluate_llama3_few_shot(
     # 2. Ensure unformatted access if test_dataset or train_dataset are HF datasets
     test_ds = test_dataset.with_format(None) if hasattr(test_dataset, 'with_format') else test_dataset
     train_ds = train_dataset.with_format(None) if hasattr(train_dataset, 'with_format') else train_dataset
+
+    # Sanity check: verify that text is actually present in the dataset
+    first_title, first_text, _ = extract_sample_meta(test_ds[0])
+    if not first_text.strip():
+        raise ValueError(
+            f"ERROR: The dataset in memory for '{dataset_name}' has empty document text!\n"
+            f"This happens because the dataset was loaded into Colab memory before updating dataset.py.\n\n"
+            f"Fix: Please re-run the dataset loading cell:\n"
+            f"  uklex_tokenized, uk_label_to_idx, uk_head_indices, uk_tail_indices = load_uklex18_dataset()\n"
+            f"  encoded_ds, eur_head_indices, eur_tail_indices = load_eurlex21_dataset()\n"
+            f"and then run evaluate_llama3_few_shot again."
+        )
 
     # 3. Sample n_shots diverse exemplars from historical train_dataset with non-empty text and valid labels
     exemplar_docs = []
