@@ -147,15 +147,22 @@ JSON Output:"""
         return "\n\n".join(prompt_parts)
 
 
+def clean_label_string(s: str) -> str:
+    s = s.upper().replace('&', ' AND ')
+    s = re.sub(r'[^A-Z0-9]', ' ', s)
+    return re.sub(r'\s+', ' ', s).strip()
+
+
 def parse_llm_json_output(llm_output_text: str, candidate_labels: List[str]) -> np.ndarray:
     """
     Parses LLM output text, extracts JSON label arrays, and converts to a multi-hot binary vector.
+    Handles strict JSON, markdown code fences, ampersands/conjunctions, and case variations.
     """
     num_classes = len(candidate_labels)
     multi_hot = np.zeros(num_classes, dtype=np.float32)
-    label_to_idx = {label.upper().strip(): idx for idx, label in enumerate(candidate_labels)}
+    clean_to_idx = {clean_label_string(lbl): idx for idx, lbl in enumerate(candidate_labels)}
 
-    # Attempt to extract JSON array using regex
+    # 1. Attempt to extract JSON array using regex
     json_match = re.search(r'\[.*?\]', llm_output_text, re.DOTALL)
     predicted_labels = []
 
@@ -163,21 +170,28 @@ def parse_llm_json_output(llm_output_text: str, candidate_labels: List[str]) -> 
         try:
             parsed = json.loads(json_match.group(0))
             if isinstance(parsed, list):
-                predicted_labels = [str(item).upper().strip() for item in parsed]
+                predicted_labels = [str(item) for item in parsed]
         except Exception:
             pass
 
-    # Fallback substring matching if JSON parsing failed
+    # 2. If no JSON list parsed, extract quoted strings
     if not predicted_labels:
-        for label_name in candidate_labels:
-            if label_name.upper() in llm_output_text.upper():
-                predicted_labels.append(label_name.upper())
+        predicted_labels = re.findall(r'\"([^\"]+)\"', llm_output_text)
 
-    # Map matched label strings to binary vector
+    # 3. Match parsed labels against candidates with clean normalization
     for label_str in predicted_labels:
-        if label_str in label_to_idx:
-            idx = label_to_idx[label_str]
+        cleaned = clean_label_string(label_str)
+        if cleaned in clean_to_idx:
+            idx = clean_to_idx[cleaned]
             multi_hot[idx] = 1.0
+
+    # 4. Fallback substring matching if still zero
+    if np.sum(multi_hot) == 0:
+        cleaned_output = clean_label_string(llm_output_text)
+        for label_name in candidate_labels:
+            if clean_label_string(label_name) in cleaned_output:
+                idx = candidate_labels.index(label_name)
+                multi_hot[idx] = 1.0
 
     return multi_hot
 
@@ -350,8 +364,8 @@ def evaluate_llama3_few_shot(
     n_shots: int = 3,
     max_samples: Optional[int] = None,
     checkpoint_dir: str = "results",
-    save_every: int = 100,
-    batch_size: int = 32,
+    save_every: int = 50,
+    batch_size: int = 16,
     max_new_tokens: int = 100,
     llama_model = None,
     tokenizer = None
@@ -364,13 +378,32 @@ def evaluate_llama3_few_shot(
     clean_name = dataset_name.lower().replace("-", "")
     ckpt_path = os.path.join(checkpoint_dir, f"llama3_preds_fewshot_{clean_name}_ckpt.npy")
 
+    # 1. Resolve Llama Tokenizer (Guard against accidental Legal-BERT tokenizer override)
+    from transformers import AutoTokenizer
+    if tokenizer is None or (hasattr(tokenizer, 'vocab_size') and tokenizer.vocab_size < 50000):
+        if 'llama_tokenizer' in globals():
+            tokenizer = globals()['llama_tokenizer']
+        elif '__main__' in sys.modules and hasattr(sys.modules['__main__'], 'llama_tokenizer'):
+            tokenizer = getattr(sys.modules['__main__'], 'llama_tokenizer')
+        else:
+            try:
+                tokenizer = AutoTokenizer.from_pretrained("meta-llama/Meta-Llama-3-8B-Instruct")
+            except Exception:
+                pass
+
+    if tokenizer is not None:
+        tokenizer.padding_side = "left"
+        if tokenizer.pad_token is None:
+            tokenizer.pad_token = tokenizer.eos_token
+            tokenizer.pad_token_id = tokenizer.eos_token_id
+
     prompt_builder = LlamaPromptBuilder(candidate_labels=candidate_labels, domain_name=dataset_name)
 
-    # Ensure unformatted access if test_dataset or train_dataset are HF datasets
+    # 2. Ensure unformatted access if test_dataset or train_dataset are HF datasets
     test_ds = test_dataset.with_format(None) if hasattr(test_dataset, 'with_format') else test_dataset
     train_ds = train_dataset.with_format(None) if hasattr(train_dataset, 'with_format') else train_dataset
 
-    # Sample n_shots diverse exemplars from historical train_dataset with non-empty text and valid labels
+    # 3. Sample n_shots diverse exemplars from historical train_dataset with non-empty text and valid labels
     exemplar_docs = []
     if train_ds is not None and len(train_ds) > 0:
         step = max(1, len(train_ds) // (n_shots * 4))
@@ -412,36 +445,37 @@ def evaluate_llama3_few_shot(
     if os.path.exists(ckpt_path):
         try:
             saved_preds = np.load(ckpt_path)
-            all_pred_vectors = list(saved_preds)
-            start_idx = len(all_pred_vectors)
-            print(f" Resuming {dataset_name} Few-Shot evaluation from checkpoint at doc {start_idx:,}/{len(prompts):,}...")
+            # Only resume if saved checkpoint has real positive predictions
+            if np.sum(saved_preds > 0) > 0 or len(saved_preds) == len(prompts):
+                all_pred_vectors = list(saved_preds)
+                start_idx = len(all_pred_vectors)
+                print(f" Resuming {dataset_name} Few-Shot evaluation from checkpoint at doc {start_idx:,}/{len(prompts):,}...")
+            else:
+                print(f" Detected empty zero-filled checkpoint at {ckpt_path}. Starting fresh.")
+                all_pred_vectors = []
+                start_idx = 0
         except Exception as e:
             print(f"Warning: Could not load checkpoint from {ckpt_path} ({e}). Starting fresh.")
             all_pred_vectors = []
             start_idx = 0
 
     if start_idx < len(prompts):
-        # Check model and tokenizer
+        # Resolve model
         if llama_model is None:
             if 'llama_model' in globals():
                 llama_model = globals()['llama_model']
             elif '__main__' in sys.modules and hasattr(sys.modules['__main__'], 'llama_model'):
                 llama_model = getattr(sys.modules['__main__'], 'llama_model')
 
-        if tokenizer is None:
-            if 'tokenizer' in globals():
-                tokenizer = globals()['tokenizer']
-            elif '__main__' in sys.modules and hasattr(sys.modules['__main__'], 'tokenizer'):
-                tokenizer = getattr(sys.modules['__main__'], 'tokenizer')
-
         if llama_model is not None and tokenizer is not None:
-            tokenizer.padding_side = "left"
-            if tokenizer.pad_token_id is None:
-                tokenizer.pad_token = tokenizer.eos_token
-                tokenizer.pad_token_id = tokenizer.eos_token_id
-
             print(f" Running Batched PyTorch CUDA Few-Shot Inference (batch_size={batch_size}, max_new_tokens={max_new_tokens})...")
             pbar = tqdm(total=len(prompts), initial=start_idx, desc=f"Llama-3 Few-Shot ({dataset_name})")
+
+            # Determine EOS tokens for Llama-3
+            eos_token_ids = [tokenizer.eos_token_id]
+            eot_id = tokenizer.convert_tokens_to_ids("<|eot_id|>")
+            if eot_id is not None and isinstance(eot_id, int) and eot_id not in eos_token_ids:
+                eos_token_ids.append(eot_id)
 
             for b_start in range(start_idx, len(prompts), batch_size):
                 b_end = min(b_start + batch_size, len(prompts))
@@ -460,13 +494,23 @@ def evaluate_llama3_few_shot(
                         **inputs,
                         max_new_tokens=max_new_tokens,
                         do_sample=False,
-                        pad_token_id=tokenizer.pad_token_id
+                        pad_token_id=tokenizer.pad_token_id,
+                        eos_token_id=eos_token_ids
                     )
 
                 input_len = inputs.input_ids.shape[1]
-                for seq in outputs:
+                for idx_seq, seq in enumerate(outputs):
                     gen_tokens = seq[input_len:]
                     gen_text = tokenizer.decode(gen_tokens, skip_special_tokens=True)
+                    
+                    # Robust fallback: if gen_text is empty, decode full sequence and split
+                    if not gen_text.strip():
+                        full_decoded = tokenizer.decode(seq, skip_special_tokens=True)
+                        if "JSON Output:" in full_decoded:
+                            gen_text = full_decoded.split("JSON Output:")[-1]
+                        elif "assistant" in full_decoded:
+                            gen_text = full_decoded.split("assistant")[-1]
+
                     pred_vector = parse_llm_json_output(gen_text, candidate_labels)
                     all_pred_vectors.append(pred_vector)
 
