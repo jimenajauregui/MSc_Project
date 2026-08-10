@@ -83,6 +83,9 @@ def analyze_model_errors(
     num_classes = len(label_names)
     class_fp_counts = np.zeros(num_classes, dtype=int)
     class_fn_counts = np.zeros(num_classes, dtype=int)
+    
+    from llm_decoder import extract_sample_meta
+    unformatted_ds = raw_dataset.with_format(None) if hasattr(raw_dataset, 'with_format') else raw_dataset
 
     for batch_idx, batch in enumerate(dataloader):
         input_ids = batch['input_ids'].to(device)
@@ -109,12 +112,16 @@ def analyze_model_errors(
 
             if len(fp) + len(fn) > 0:
                 doc_idx = batch_idx * dataloader.batch_size + i
-                if doc_idx < len(raw_dataset):
-                    doc_meta = raw_dataset[doc_idx]
+                if doc_idx < len(unformatted_ds):
+                    doc_meta = unformatted_ds[doc_idx]
+                    title, _, _ = extract_sample_meta(doc_meta, max_chars=100)
+                    doc_id = doc_meta.get('id', doc_meta.get('celex_id', f"doc_{doc_idx}"))
+                    year = doc_meta.get('year', 'Unknown')
+                    
                     failures.append({
-                        "doc_id": doc_meta.get('id', f"doc_{doc_idx}"),
-                        "year": doc_meta.get('year', 'Unknown'),
-                        "title": doc_meta.get('title', 'N/A'),
+                        "doc_id": str(doc_id),
+                        "year": int(year) if str(year).isdigit() else str(year),
+                        "title": title if title and title != "N/A" else f"Document {doc_id}",
                         "true_labels": [label_names[c] for c in true_idxs],
                         "pred_labels": [label_names[c] for c in pred_idxs],
                         "error_count": len(fp) + len(fn)
@@ -132,8 +139,9 @@ def analyze_model_errors(
 
     return {
         "top_failures": failures[:top_n],
-        "class_fp_counts": dict(zip(label_names, class_fp_counts.tolist())),
-        "class_fn_counts": dict(zip(label_names, class_fn_counts.tolist()))
+        "total_errors": int(sum(class_fp_counts) + sum(class_fn_counts)),
+        "class_fp_counts": dict(zip(label_names, [int(x) for x in class_fp_counts])),
+        "class_fn_counts": dict(zip(label_names, [int(x) for x in class_fn_counts]))
     }
 
 
