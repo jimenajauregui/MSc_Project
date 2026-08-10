@@ -1,0 +1,156 @@
+{
+    "top_failures": [
+        {
+            "doc_id": "32013R1216",
+            "year": 2013,
+            "title": "32013R1216",
+            "true_labels": [
+                "LAW",
+                "TRADE",
+                "ENVIRONMENT",
+                "PRODUCTION,TECHNOLOGY AND RESEARCH",
+                "INDUSTRY",
+                "GEOGRAPHY",
+                "INTERNATIONAL ORGANISATIONS"
+            ],
+            "pred_labels": [
+                "POLITICS",
+                "EMPLOYMENT AND WORKING CONDITIONS",
+                "ENVIRONMENT",
+                "PRODUCTION,TECHNOLOGY AND RESEARCH"
+            ],
+            "error_count": 7
+        },
+        {
+            "doc_id": "32014R1049",
+            "year": 2014,
+            "title": "32014R1049",
+            "true_labels": [
+                "POLITICS",
+                "LAW",
+                "TRADE",
+                "SOCIAL QUESTIONS",
+                "TRANSPORT",
+                "PRODUCTION,TECHNOLOGY AND RESEARCH"
+            ],
+            "pred_labels": [
+                "ECONOMICS",
+                "EMPLOYMENT AND WORKING CONDITIONS",
+                "PRODUCTION,TECHNOLOGY AND RESEARCH"
+            ],
+            "error_count": 7
+        },
+        {
+            "doc_id": "32014D0148",
+            "year": 2014,
+            "title": "32014D0148",
+            "true_labels": [
+                "LAW",
+                "TRADE",
+                "SOCIAL QUESTIONS",
+                "SCIENCE",
+                "PRODUCTION,TECHNOLOGY AND RESEARCH"
+            ],
+            "pred_labels": [
+                "EMPLOYMENT AND WORKING CONDITIONS",
+                "TRANSPORT",
+                "ENVIRONMENT",
+                "PRODUCTION,TECHNOLOGY AND RESEARCH"
+            ],
+            "error_count": 7
+        },
+        {
+            "doc_id": "32014R0560",
+            "year": 2014,
+            "title": "32014R0560",
+            "true_labels": [
+                "ECONOMICS",
+                "SOCIAL QUESTIONS",
+                "SCIENCE",
+                "EMPLOYMENT AND WORKING CONDITIONS",
+                "TRANSPORT",
+                "AGRI-FOODSTUFFS",
+                "PRODUCTION,TECHNOLOGY AND RESEARCH",
+                "INTERNATIONAL ORGANISATIONS",
+                "BUSINESS AND COMPETITION"
+            ],
+            "pred_labels": [
+                "INTERNATIONAL RELATIONS",
+                "ECONOMICS",
+                "SOCIAL QUESTIONS",
+                "PRODUCTION,TECHNOLOGY AND RESEARCH"
+            ],
+            "error_count": 7
+        },
+        {
+            "doc_id": "32013R0752",
+            "year": 2013,
+            "title": "32013R0752",
+            "true_labels": [
+                "LAW",
+                "ECONOMICS",
+                "TRADE",
+                "SCIENCE",
+                "ENVIRONMENT",
+                "INDUSTRY",
+                "GEOGRAPHY",
+                "INTERNATIONAL ORGANISATIONS"
+            ],
+            "pred_labels": [
+                "LAW",
+                "TRADE",
+                "FINANCE",
+                "PRODUCTION,TECHNOLOGY AND RESEARCH",
+                "INDUSTRY"
+            ],
+            "error_count": 7
+        }
+    ],
+    "total_errors": 7267,
+    "class_fp_counts": {
+        "POLITICS": 404,
+        "INTERNATIONAL RELATIONS": 183,
+        "EUROPEAN UNION": 16,
+        "LAW": 227,
+        "ECONOMICS": 248,
+        "TRADE": 149,
+        "FINANCE": 348,
+        "SOCIAL QUESTIONS": 95,
+        "EDUCATION AND COMMUNICATIONS": 53,
+        "SCIENCE": 192,
+        "EMPLOYMENT AND WORKING CONDITIONS": 47,
+        "TRANSPORT": 264,
+        "ENVIRONMENT": 113,
+        "AGRICULTURE, FORESTRY AND FISHERIES": 8,
+        "AGRI-FOODSTUFFS": 10,
+        "PRODUCTION,TECHNOLOGY AND RESEARCH": 339,
+        "ENERGY": 20,
+        "INDUSTRY": 177,
+        "GEOGRAPHY": 102,
+        "INTERNATIONAL ORGANISATIONS": 163,
+        "BUSINESS AND COMPETITION": 102
+    },
+    "class_fn_counts": {
+        "POLITICS": 192,
+        "INTERNATIONAL RELATIONS": 148,
+        "EUROPEAN UNION": 194,
+        "LAW": 801,
+        "ECONOMICS": 66,
+        "TRADE": 278,
+        "FINANCE": 207,
+        "SOCIAL QUESTIONS": 274,
+        "EDUCATION AND COMMUNICATIONS": 102,
+        "SCIENCE": 74,
+        "EMPLOYMENT AND WORKING CONDITIONS": 219,
+        "TRANSPORT": 196,
+        "ENVIRONMENT": 192,
+        "AGRICULTURE, FORESTRY AND FISHERIES": 72,
+        "AGRI-FOODSTUFFS": 77,
+        "PRODUCTION,TECHNOLOGY AND RESEARCH": 168,
+        "ENERGY": 51,
+        "INDUSTRY": 67,
+        "GEOGRAPHY": 204,
+        "INTERNATIONAL ORGANISATIONS": 140,
+        "BUSINESS AND COMPETITION": 285
+    }
+}

@@ -1,0 +1,123 @@
+{
+    "top_failures": [
+        {
+            "doc_id": "doc_3393",
+            "year": 2011,
+            "title": "The Local Policing Bodies (Consequential Amendments) Regulations 2011",
+            "true_labels": [
+                "CHILDREN",
+                "CRIMINAL LAW",
+                "ENVIRONMENT",
+                "HEALTH CARE",
+                "LOCAL GOVERNMENT",
+                "PLANNING & DEVELOPMENT",
+                "PUBLIC ORDER",
+                "SOCIAL SECURITY",
+                "TRANSPORTATION"
+            ],
+            "pred_labels": [
+                "PUBLIC ORDER"
+            ],
+            "error_count": 8
+        },
+        {
+            "doc_id": "doc_3733",
+            "year": 2011,
+            "title": "The Government Resources and Accounts Act 2000 (Estimates and Accounts) (Amendment) Order 2011",
+            "true_labels": [
+                "AGRICULTURE & FOOD",
+                "ENVIRONMENT",
+                "LOCAL GOVERNMENT"
+            ],
+            "pred_labels": [
+                "EDUCATION",
+                "TAXATION"
+            ],
+            "error_count": 5
+        },
+        {
+            "doc_id": "doc_4644",
+            "year": 2012,
+            "title": "The Safeguarding Vulnerable Groups Act 2006 (Miscellaneous Provisions) Regulations 2012",
+            "true_labels": [
+                "CHILDREN",
+                "HEALTH CARE",
+                "TAXATION",
+                "TRANSPORTATION"
+            ],
+            "pred_labels": [
+                "PUBLIC ORDER"
+            ],
+            "error_count": 5
+        },
+        {
+            "doc_id": "doc_2402",
+            "year": 2010,
+            "title": "The Iran (European Union Financial Sanctions) Regulations 2010",
+            "true_labels": [
+                "CRIMINAL LAW",
+                "EU",
+                "IMMIGRATION & CITIZENSHIP"
+            ],
+            "pred_labels": [
+                "FINANCE"
+            ],
+            "error_count": 4
+        },
+        {
+            "doc_id": "doc_2484",
+            "year": 2010,
+            "title": "The Tribunal Procedure (Amendment No. 3) Rules 2010",
+            "true_labels": [
+                "CHILDREN",
+                "HEALTH CARE",
+                "SOCIAL SECURITY"
+            ],
+            "pred_labels": [
+                "TAXATION"
+            ],
+            "error_count": 4
+        }
+    ],
+    "total_errors": 3972,
+    "class_fp_counts": {
+        "AGRICULTURE & FOOD": 63,
+        "CHILDREN": 188,
+        "CRIMINAL LAW": 99,
+        "EDUCATION": 98,
+        "ENVIRONMENT": 58,
+        "EU": 24,
+        "FINANCE": 80,
+        "HEALTH CARE": 108,
+        "HOUSING": 73,
+        "IMMIGRATION & CITIZENSHIP": 74,
+        "LOCAL GOVERNMENT": 317,
+        "PLANNING & DEVELOPMENT": 37,
+        "POLITICS": 29,
+        "PUBLIC ORDER": 116,
+        "SOCIAL SECURITY": 185,
+        "TAXATION": 201,
+        "TELECOMMUNICATIONS": 3,
+        "TRANSPORTATION": 118
+    },
+    "class_fn_counts": {
+        "AGRICULTURE & FOOD": 45,
+        "CHILDREN": 168,
+        "CRIMINAL LAW": 109,
+        "EDUCATION": 71,
+        "ENVIRONMENT": 93,
+        "EU": 237,
+        "FINANCE": 80,
+        "HEALTH CARE": 157,
+        "HOUSING": 62,
+        "IMMIGRATION & CITIZENSHIP": 67,
+        "LOCAL GOVERNMENT": 232,
+        "PLANNING & DEVELOPMENT": 95,
+        "POLITICS": 14,
+        "PUBLIC ORDER": 218,
+        "SOCIAL SECURITY": 113,
+        "TAXATION": 191,
+        "TELECOMMUNICATIONS": 75,
+        "TRANSPORTATION": 74
+    }
+}

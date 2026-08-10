@@ -1,0 +1,124 @@
+{
+    "top_failures": [
+        {
+            "doc_id": "doc_3393",
+            "year": 2011,
+            "title": "The Local Policing Bodies (Consequential Amendments) Regulations 2011",
+            "true_labels": [
+                "CHILDREN",
+                "CRIMINAL LAW",
+                "ENVIRONMENT",
+                "HEALTH CARE",
+                "LOCAL GOVERNMENT",
+                "PLANNING & DEVELOPMENT",
+                "PUBLIC ORDER",
+                "SOCIAL SECURITY",
+                "TRANSPORTATION"
+            ],
+            "pred_labels": [
+                "PUBLIC ORDER"
+            ],
+            "error_count": 8
+        },
+        {
+            "doc_id": "doc_4644",
+            "year": 2012,
+            "title": "The Safeguarding Vulnerable Groups Act 2006 (Miscellaneous Provisions) Regulations 2012",
+            "true_labels": [
+                "CHILDREN",
+                "HEALTH CARE",
+                "TAXATION",
+                "TRANSPORTATION"
+            ],
+            "pred_labels": [
+                "CRIMINAL LAW"
+            ],
+            "error_count": 5
+        },
+        {
+            "doc_id": "doc_13",
+            "year": 2008,
+            "title": "The Tribunal Procedure (First-tier Tribunal) (Social Entitlement Chamber) Rules 2008",
+            "true_labels": [
+                "CHILDREN",
+                "TAXATION"
+            ],
+            "pred_labels": [
+                "IMMIGRATION & CITIZENSHIP",
+                "SOCIAL SECURITY"
+            ],
+            "error_count": 4
+        },
+        {
+            "doc_id": "doc_880",
+            "year": 2008,
+            "title": "The Healthy Start Scheme and Welfare Food (Amendment) Regulations 2008",
+            "true_labels": [
+                "AGRICULTURE & FOOD",
+                "HEALTH CARE",
+                "SOCIAL SECURITY",
+                "TAXATION"
+            ],
+            "pred_labels": [
+                "CHILDREN",
+                "SOCIAL SECURITY"
+            ],
+            "error_count": 4
+        },
+        {
+            "doc_id": "doc_1201",
+            "year": 2009,
+            "title": "The First-tier Tribunal and Upper Tribunal (Chambers) (Amendment) Order 2009",
+            "true_labels": [
+                "IMMIGRATION & CITIZENSHIP",
+                "TAXATION"
+            ],
+            "pred_labels": [
+                "CHILDREN",
+                "SOCIAL SECURITY"
+            ],
+            "error_count": 4
+        }
+    ],
+    "total_errors": 3836,
+    "class_fp_counts": {
+        "AGRICULTURE & FOOD": 50,
+        "CHILDREN": 135,
+        "CRIMINAL LAW": 115,
+        "EDUCATION": 80,
+        "ENVIRONMENT": 63,
+        "EU": 21,
+        "FINANCE": 103,
+        "HEALTH CARE": 93,
+        "HOUSING": 87,
+        "IMMIGRATION & CITIZENSHIP": 36,
+        "LOCAL GOVERNMENT": 282,
+        "PLANNING & DEVELOPMENT": 27,
+        "POLITICS": 24,
+        "PUBLIC ORDER": 57,
+        "SOCIAL SECURITY": 173,
+        "TAXATION": 143,
+        "TELECOMMUNICATIONS": 1,
+        "TRANSPORTATION": 71
+    },
+    "class_fn_counts": {
+        "AGRICULTURE & FOOD": 55,
+        "CHILDREN": 183,
+        "CRIMINAL LAW": 101,
+        "EDUCATION": 66,
+        "ENVIRONMENT": 109,
+        "EU": 248,
+        "FINANCE": 66,
+        "HEALTH CARE": 152,
+        "HOUSING": 57,
+        "IMMIGRATION & CITIZENSHIP": 67,
+        "LOCAL GOVERNMENT": 250,
+        "PLANNING & DEVELOPMENT": 103,
+        "POLITICS": 16,
+        "PUBLIC ORDER": 263,
+        "SOCIAL SECURITY": 114,
+        "TAXATION": 241,
+        "TELECOMMUNICATIONS": 98,
+        "TRANSPORTATION": 86
+    }
+}

@@ -1,0 +1,145 @@
+{
+    "top_failures": [
+        {
+            "doc_id": "doc_3321",
+            "year": 2010,
+            "title": "The Licensing Act 2003 (Mandatory Licensing Conditions) Order\u00a02010",
+            "true_labels": [
+                "PUBLIC ORDER"
+            ],
+            "pred_labels": [
+                "CRIMINAL LAW",
+                "EDUCATION",
+                "ENVIRONMENT",
+                "EU",
+                "FINANCE",
+                "HEALTH CARE",
+                "HOUSING",
+                "LOCAL GOVERNMENT",
+                "PLANNING & DEVELOPMENT",
+                "SOCIAL SECURITY"
+            ],
+            "error_count": 11
+        },
+        {
+            "doc_id": "doc_2256",
+            "year": 2009,
+            "title": "The Safeguarding Vulnerable Groups Act 2006 (Devolution Alignment) Order 2009",
+            "true_labels": [
+                "CHILDREN"
+            ],
+            "pred_labels": [
+                "CHILDREN",
+                "CRIMINAL LAW",
+                "EDUCATION",
+                "ENVIRONMENT",
+                "EU",
+                "FINANCE",
+                "HEALTH CARE",
+                "LOCAL GOVERNMENT",
+                "PLANNING & DEVELOPMENT",
+                "SOCIAL SECURITY"
+            ],
+            "error_count": 9
+        },
+        {
+            "doc_id": "doc_806",
+            "year": 2008,
+            "title": "The Specified Products from China (Restriction on First Placing on the Market) (England) Regulations 2008",
+            "true_labels": [
+                "AGRICULTURE & FOOD"
+            ],
+            "pred_labels": [
+                "EU",
+                "FINANCE",
+                "HEALTH CARE",
+                "LOCAL GOVERNMENT",
+                "PLANNING & DEVELOPMENT",
+                "PUBLIC ORDER",
+                "SOCIAL SECURITY"
+            ],
+            "error_count": 8
+        },
+        {
+            "doc_id": "doc_1402",
+            "year": 2009,
+            "title": "The Safeguarding Vulnerable Groups Act 2006 (Miscellaneous Provisions) Regulations 2009",
+            "true_labels": [
+                "CHILDREN"
+            ],
+            "pred_labels": [
+                "CRIMINAL LAW",
+                "EDUCATION",
+                "HEALTH CARE",
+                "LOCAL GOVERNMENT",
+                "PLANNING & DEVELOPMENT",
+                "PUBLIC ORDER",
+                "SOCIAL SECURITY"
+            ],
+            "error_count": 8
+        },
+        {
+            "doc_id": "doc_3393",
+            "year": 2011,
+            "title": "The Local Policing Bodies (Consequential Amendments) Regulations 2011",
+            "true_labels": [
+                "CHILDREN",
+                "CRIMINAL LAW",
+                "ENVIRONMENT",
+                "HEALTH CARE",
+                "LOCAL GOVERNMENT",
+                "PLANNING & DEVELOPMENT",
+                "PUBLIC ORDER",
+                "SOCIAL SECURITY",
+                "TRANSPORTATION"
+            ],
+            "pred_labels": [
+                "CRIMINAL LAW",
+                "LOCAL GOVERNMENT",
+                "POLITICS"
+            ],
+            "error_count": 8
+        }
+    ],
+    "total_errors": 10077,
+    "class_fp_counts": {
+        "AGRICULTURE & FOOD": 51,
+        "CHILDREN": 42,
+        "CRIMINAL LAW": 762,
+        "EDUCATION": 279,
+        "ENVIRONMENT": 482,
+        "EU": 908,
+        "FINANCE": 2249,
+        "HEALTH CARE": 114,
+        "HOUSING": 45,
+        "IMMIGRATION & CITIZENSHIP": 22,
+        "LOCAL GOVERNMENT": 614,
+        "PLANNING & DEVELOPMENT": 552,
+        "POLITICS": 14,
+        "PUBLIC ORDER": 95,
+        "SOCIAL SECURITY": 241,
+        "TAXATION": 31,
+        "TELECOMMUNICATIONS": 18,
+        "TRANSPORTATION": 137
+    },
+    "class_fn_counts": {
+        "AGRICULTURE & FOOD": 222,
+        "CHILDREN": 209,
+        "CRIMINAL LAW": 49,
+        "EDUCATION": 47,
+        "ENVIRONMENT": 65,
+        "EU": 69,
+        "FINANCE": 30,
+        "HEALTH CARE": 236,
+        "HOUSING": 84,
+        "IMMIGRATION & CITIZENSHIP": 76,
+        "LOCAL GOVERNMENT": 265,
+        "PLANNING & DEVELOPMENT": 54,
+        "POLITICS": 70,
+        "PUBLIC ORDER": 618,
+        "SOCIAL SECURITY": 472,
+        "TAXATION": 716,
+        "TELECOMMUNICATIONS": 9,
+        "TRANSPORTATION": 130
+    }
+}
