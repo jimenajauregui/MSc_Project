@@ -1,0 +1,133 @@
+{
+    "top_failures": [
+        {
+            "doc_id": "doc_3393",
+            "year": 2011,
+            "title": "The Local Policing Bodies (Consequential Amendments) Regulations 2011",
+            "true_labels": [
+                "CHILDREN",
+                "CRIMINAL LAW",
+                "ENVIRONMENT",
+                "HEALTH CARE",
+                "LOCAL GOVERNMENT",
+                "PLANNING & DEVELOPMENT",
+                "PUBLIC ORDER",
+                "SOCIAL SECURITY",
+                "TRANSPORTATION"
+            ],
+            "pred_labels": [
+                "CRIMINAL LAW",
+                "LOCAL GOVERNMENT",
+                "POLITICS"
+            ],
+            "error_count": 8
+        },
+        {
+            "doc_id": "doc_13",
+            "year": 2008,
+            "title": "The Tribunal Procedure (First-tier Tribunal) (Social Entitlement Chamber) Rules 2008",
+            "true_labels": [
+                "CHILDREN",
+                "TAXATION"
+            ],
+            "pred_labels": [
+                "CRIMINAL LAW",
+                "EDUCATION",
+                "FINANCE",
+                "LOCAL GOVERNMENT",
+                "SOCIAL SECURITY"
+            ],
+            "error_count": 7
+        },
+        {
+            "doc_id": "doc_4462",
+            "year": 2012,
+            "title": "The Police Act 1997 (Criminal Records) (Amendment No. 2) Regulations 2012",
+            "true_labels": [
+                "CHILDREN",
+                "PUBLIC ORDER",
+                "TAXATION",
+                "TRANSPORTATION"
+            ],
+            "pred_labels": [
+                "CRIMINAL LAW",
+                "EDUCATION",
+                "SOCIAL SECURITY"
+            ],
+            "error_count": 7
+        },
+        {
+            "doc_id": "doc_410",
+            "year": 2008,
+            "title": "The Serious Crime Act 2007 (Commencement No. 2 and Transitional and Transitory Provisions and Savings) Order 2008",
+            "true_labels": [
+                "PUBLIC ORDER"
+            ],
+            "pred_labels": [
+                "CRIMINAL LAW",
+                "EU",
+                "LOCAL GOVERNMENT",
+                "SOCIAL SECURITY",
+                "TELECOMMUNICATIONS"
+            ],
+            "error_count": 6
+        },
+        {
+            "doc_id": "doc_438",
+            "year": 2008,
+            "title": "The Controlled Drugs (Drug Precursors)(Intra-Community Trade) Regulations 2008",
+            "true_labels": [
+                "PUBLIC ORDER"
+            ],
+            "pred_labels": [
+                "CRIMINAL LAW",
+                "EU",
+                "HEALTH CARE",
+                "LOCAL GOVERNMENT",
+                "SOCIAL SECURITY"
+            ],
+            "error_count": 6
+        }
+    ],
+    "total_errors": 5709,
+    "class_fp_counts": {
+        "AGRICULTURE & FOOD": 12,
+        "CHILDREN": 6,
+        "CRIMINAL LAW": 374,
+        "EDUCATION": 93,
+        "ENVIRONMENT": 323,
+        "EU": 442,
+        "FINANCE": 806,
+        "HEALTH CARE": 45,
+        "HOUSING": 9,
+        "IMMIGRATION & CITIZENSHIP": 16,
+        "LOCAL GOVERNMENT": 842,
+        "PLANNING & DEVELOPMENT": 54,
+        "POLITICS": 118,
+        "PUBLIC ORDER": 36,
+        "SOCIAL SECURITY": 209,
+        "TAXATION": 6,
+        "TELECOMMUNICATIONS": 45,
+        "TRANSPORTATION": 53
+    },
+    "class_fn_counts": {
+        "AGRICULTURE & FOOD": 167,
+        "CHILDREN": 177,
+        "CRIMINAL LAW": 19,
+        "EDUCATION": 45,
+        "ENVIRONMENT": 21,
+        "EU": 93,
+        "FINANCE": 33,
+        "HEALTH CARE": 156,
+        "HOUSING": 59,
+        "IMMIGRATION & CITIZENSHIP": 64,
+        "LOCAL GOVERNMENT": 172,
+        "PLANNING & DEVELOPMENT": 50,
+        "POLITICS": 35,
+        "PUBLIC ORDER": 403,
+        "SOCIAL SECURITY": 140,
+        "TAXATION": 508,
+        "TELECOMMUNICATIONS": 4,
+        "TRANSPORTATION": 74
+    }
+}
