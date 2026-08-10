@@ -137,6 +137,77 @@ def analyze_model_errors(
     }
 
 
+def analyze_prediction_errors(
+    predictions,
+    dataset,
+    label_names: list,
+    top_n: int = 5
+) -> dict:
+    """
+    Analyzes multi-label prediction errors.
+    Extracts top qualitative failure cases with actual titles, and computes class-level FP/FN counts.
+    """
+    from llm_decoder import extract_sample_meta
+    
+    preds_arr = np.array(predictions, dtype=np.float32)
+    unformatted_ds = dataset.with_format(None) if hasattr(dataset, 'with_format') else dataset
+    
+    # Ground truth labels
+    if hasattr(dataset, 'with_format'):
+        targets = np.array(dataset['labels'], dtype=np.float32)[:len(preds_arr)]
+    else:
+        targets = np.array([sample['labels'] for sample in dataset], dtype=np.float32)[:len(preds_arr)]
+
+    failures = []
+    num_classes = len(label_names)
+    class_fp_counts = np.zeros(num_classes, dtype=int)
+    class_fn_counts = np.zeros(num_classes, dtype=int)
+
+    for i in range(len(preds_arr)):
+        true_idxs = np.where(targets[i] == 1)[0]
+        pred_idxs = np.where(preds_arr[i] == 1)[0]
+
+        fp = set(pred_idxs) - set(true_idxs)
+        fn = set(true_idxs) - set(pred_idxs)
+
+        for c in fp:
+            class_fp_counts[c] += 1
+        for c in fn:
+            class_fn_counts[c] += 1
+
+        if len(fp) + len(fn) > 0:
+            doc = unformatted_ds[i]
+            title, _, _ = extract_sample_meta(doc, max_chars=100)
+            doc_id = doc.get('id', doc.get('celex_id', f"doc_{i}"))
+            year = doc.get('year', 'Unknown')
+            
+            failures.append({
+                "doc_id": str(doc_id),
+                "year": int(year) if str(year).isdigit() else str(year),
+                "title": title if title and title != "N/A" else f"Document {doc_id}",
+                "true_labels": [label_names[c] for c in true_idxs],
+                "pred_labels": [label_names[c] for c in pred_idxs],
+                "error_count": len(fp) + len(fn)
+            })
+
+    failures = sorted(failures, key=lambda x: x['error_count'], reverse=True)
+
+    print(f"\n==================================================")
+    print(f" QUALITATIVE FEW-SHOT ERROR ANALYSIS (Top {top_n} Disagreements)")
+    print(f"==================================================")
+    for case in failures[:top_n]:
+        print(f"• ID: {case['doc_id']} | Year: {case['year']} | Title: {case['title'][:70]}...")
+        print(f"  True Labels: {case['true_labels']}")
+        print(f"  Predicted:   {case['pred_labels']}\n")
+
+    return {
+        "top_failures": failures[:top_n],
+        "total_errors": int(sum(class_fp_counts) + sum(class_fn_counts)),
+        "class_fp_counts": dict(zip(label_names, [int(x) for x in class_fp_counts])),
+        "class_fn_counts": dict(zip(label_names, [int(x) for x in class_fn_counts]))
+    }
+
+
 def train_model(
     model: torch.nn.Module,
     train_loader,
