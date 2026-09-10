@@ -12,9 +12,34 @@ Unlike standard benchmark evaluations that introduce temporal data leakage via r
 *   **Regularisation:** Incorporating Spectral Decoupling preserves the invariance of tail concepts, mitigating performance degradation over time for rare legal classes.
  
 ### Datasets Evaluated
-*   **UK-LEX (UK-LEX-18):** Covers UK legislation from 1975 to 2018.
-*   **EUR-LEX (EUR-LEX-21):** Covers European Union legislation from 1958 to 2016.
+The project uses two multi-label legal text classification benchmarks:
+*   **UK-LEX (UK-LEX-18):** Acts of UK Parliament (1950–2018)
+*   **EUR-LEX (EUR-LEX-21):** EU statutory legislation (1990–2019)
 
 ### Evaluated Architectures
 *   **Fine-tuned Encoders:** `Legal-BERT` and `Legal-BERT-LWAN` (with and without Spectral Decoupling).
 *   **Autoregressive Decoders:** `Llama 3 8B` evaluated via Zero-Shot and 3-Shot In-Context Learning (ICL).
+
+### System Requirements
+Before executing the code, ensure your environment meets the following specifications:
+*   **1. Operating System:**  Linux, macOS, or Windows.
+*   **2. Hardware:**
+CPU: 4+ cores, 16 GB RAM minimum.
+GPU: NVIDIA GPU with CUDA support (8 GB+ VRAM recommended)
+*   **3. Software:** Python 3.10 or higher, git.
+
+### Environment Setup and Installation
+*   **1. Clone the Git Repository:** Open a terminal and clone the repository to your local machine
+*   **2. Create a Virtual Environment:** It is recommended to use an isolated Python virtual environment
+*   **3. Install all required libraries using pip:**
+    pip install --upgrade pip
+    pip install -r requirements.txt
+
+### Data Acquisition
+* **UK-LEX-18:** Automatically downloaded from Zenodo during pipeline execution via dataset.py.
+* **EUR-LEX-21:** Automatically loaded via HuggingFace datasets.
+
+### Execution Guide
+The main experimental workflow is executed sequentially via the interactive Jupyter Notebook **MSc_Project.ipynb**:
+Launch Jupyter Lab MSc_Project.ipynb and execute notebook cells in order.
+
